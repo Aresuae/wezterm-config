@@ -3,6 +3,9 @@ local platform = require('utils.platform')()
 local backdrops = require('utils.backdrops')
 local act = wezterm.action
 
+-- 个人代理端口（仅在本地使用）
+local PROXY_PORT = '2080'
+
 local mod = {}
 
 if platform.is_mac then
@@ -42,9 +45,9 @@ local keys = {
           },
           action = wezterm.action_callback(function(window, pane, id)
              if id == 'proxy-win' then
-                pane:send_text('$env:http_proxy="http://127.0.0.1:2080"; $env:https_proxy="http://127.0.0.1:2080"\r')
+                pane:send_text('$env:http_proxy="http://127.0.0.1:' .. PROXY_PORT .. '"; $env:HTTP_PROXY=$env:http_proxy; $env:https_proxy="http://127.0.0.1:' .. PROXY_PORT .. '"; $env:HTTPS_PROXY=$env:https_proxy; $env:no_proxy="localhost,127.0.0.1"; $env:NO_PROXY=$env:no_proxy\r')
              elseif id == 'proxy-linux' then
-                pane:send_text('export HTTP_PROXY=http://127.0.0.1:2080; export HTTPS_PROXY=http://127.0.0.1:2080\r')
+                pane:send_text('export http_proxy="http://127.0.0.1:' .. PROXY_PORT .. '"\rexport HTTP_PROXY="$http_proxy"\rexport https_proxy="http://127.0.0.1:' .. PROXY_PORT .. '"\rexport HTTPS_PROXY="$https_proxy"\rexport no_proxy="localhost,127.0.0.1,.local"\rexport NO_PROXY="$no_proxy"\r')
              elseif id == 'agent' then
                 pane:send_text('claude update; npm upgrade -g opencode-ai; npm upgrade -g @openai/codex; npm upgrade -g @google/gemini-cli\r')
              end
