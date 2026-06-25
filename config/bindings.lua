@@ -264,55 +264,62 @@ local key_tables = {
    },
 }
 
+local function show_pane_context_menu(window, pane)
+   local has_selection = window:get_selection_text_for_pane(pane) ~= ''
+   local choices = {
+      { label = '左右分屏', id = 'split_right' },
+      { label = '上下分屏', id = 'split_down' },
+      { label = '关闭当前窗格', id = 'close_pane' },
+      { label = '窗格 → 独立新窗口', id = 'new_window' },
+      { label = '窗格 → 新标签页', id = 'new_tab' },
+      { label = '随机壁纸', id = 'backdrop' },
+   }
+   if has_selection then
+      table.insert(choices, 1, { label = '复制选中', id = 'copy' })
+   else
+      table.insert(choices, 1, { label = '粘贴', id = 'paste' })
+   end
+
+   window:perform_action(
+      act.InputSelector({
+         title = '窗格操作',
+         choices = choices,
+         action = wezterm.action_callback(function(win, p, id)
+            if id == 'paste' then
+               win:perform_action(act.PasteFrom('Clipboard'), p)
+            elseif id == 'copy' then
+               win:perform_action(act.CopyTo('Clipboard'), p)
+               win:perform_action(act.ClearSelection, p)
+            elseif id == 'split_right' then
+               p:split({ direction = 'Right', size = { Percent = 50 } })
+            elseif id == 'split_down' then
+               p:split({ direction = 'Down', size = { Percent = 50 } })
+            elseif id == 'close_pane' then
+               win:perform_action(act.CloseCurrentPane({ confirm = true }), p)
+            elseif id == 'new_window' then
+               p:move_to_new_window()
+            elseif id == 'new_tab' then
+               p:move_to_new_tab()
+            elseif id == 'backdrop' then
+               backdrops:random(win)
+            end
+         end),
+      }),
+      pane
+   )
+end
+
 local mouse_bindings = {
-   -- 右键弹出操作菜单（WezTerm 无系统级右键菜单，用选择器模拟）
+   -- 松开右键才弹出菜单（Down 只拦截，避免按住才显示、松手就消失）
    {
       event = { Down = { streak = 1, button = 'Right' } },
       mods = 'NONE',
-      action = wezterm.action_callback(function(window, pane)
-         local has_selection = window:get_selection_text_for_pane(pane) ~= ''
-         local choices = {
-            { label = '左右分屏', id = 'split_right' },
-            { label = '上下分屏', id = 'split_down' },
-            { label = '关闭当前窗格', id = 'close_pane' },
-            { label = '窗格 → 独立新窗口', id = 'new_window' },
-            { label = '窗格 → 新标签页', id = 'new_tab' },
-            { label = '随机壁纸', id = 'backdrop' },
-         }
-         if has_selection then
-            table.insert(choices, 1, { label = '复制选中', id = 'copy' })
-         else
-            table.insert(choices, 1, { label = '粘贴', id = 'paste' })
-         end
-
-         window:perform_action(
-            act.InputSelector({
-               title = '窗格操作',
-               choices = choices,
-               action = wezterm.action_callback(function(win, p, id)
-                  if id == 'paste' then
-                     win:perform_action(act.PasteFrom('Clipboard'), p)
-                  elseif id == 'copy' then
-                     win:perform_action(act.CopyTo('Clipboard'), p)
-                     win:perform_action(act.ClearSelection, p)
-                  elseif id == 'split_right' then
-                     p:split({ direction = 'Right', size = { Percent = 50 } })
-                  elseif id == 'split_down' then
-                     p:split({ direction = 'Down', size = { Percent = 50 } })
-                  elseif id == 'close_pane' then
-                     win:perform_action(act.CloseCurrentPane({ confirm = true }), p)
-                  elseif id == 'new_window' then
-                     p:move_to_new_window()
-                  elseif id == 'new_tab' then
-                     p:move_to_new_tab()
-                  elseif id == 'backdrop' then
-                     backdrops:random(win)
-                  end
-               end),
-            }),
-            pane
-         )
-      end),
+      action = act.DisableDefaultAssignment,
+   },
+   {
+      event = { Up = { streak = 1, button = 'Right' } },
+      mods = 'NONE',
+      action = wezterm.action_callback(show_pane_context_menu),
    },
    -- Ctrl-click will open the link under the mouse cursor
    {

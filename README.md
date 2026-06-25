@@ -45,7 +45,7 @@ git clone https://github.com/Aresuae/wezterm-config.git $env:USERPROFILE\.config
 | 切换窗格 | `Alt + Ctrl + H/J/K/L` |
 | 窗格拆成独立窗口 | `Alt + Ctrl + D` |
 | 调整分屏宽度 | 拖动紫色分隔线，或 `Alt + Shift + 方向键` |
-| **右键菜单** | **在终端内右键** → 选择操作 |
+| **右键菜单** | **在终端内松开右键** → ↑↓ 选择，Enter 确认 |
 
 ### 右键菜单项
 
