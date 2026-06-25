@@ -1,348 +1,102 @@
-# WezTerm 配置
+# WezTerm 个人配置
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/wezterm/wezterm/main/assets/icon/wezterm-icon.svg" width="110" height="100" />
-</div>
+基于 [little3tar/wezterm](https://github.com/little3tar/wezterm) 定制，面向 **Windows** 日常使用：分屏、当前窗格高亮、右键操作菜单、动态壁纸。
 
-<p align="center">
-基于 Rust 的 GPU 加速跨平台终端 · WebGPU 渲染 · 60 FPS
-</p>
+## 特性
 
-## 核心特性
+- **分屏**：左右 / 上下 / 一键两列 / 一键三列
+- **焦点高亮**：非当前窗格自动变暗，鼠标移入切换焦点
+- **右键菜单**：在终端区域右键弹出操作列表（粘贴、分屏、拆窗口等）
+- **字体**：`Cascadia Mono` + `Microsoft YaHei`（无需额外安装 Maple Mono）
+- **外观**：Catppuccin Mocha 配色 + 半透明动态背景
+- **快捷键**：`Alt` 为主修饰键，避免与 Win 键冲突
 
-**外观**
+## 快速安装
 
-- 🎨 Catppuccin Mocha 配色 + 动态背景切换
-- 📊 双侧状态栏（时间/电池/Leader 模式指示）
-- 🖼️ 半透明背景（96% 不透明度）+ 集成标题栏
+### 1. 安装 WezTerm
 
-**交互**
-
-- ⌨️ 完全自定义快捷键（禁用默认，从零构建）
-- 🎯 Leader 键模式（字体/窗格调整）
-- 🔗 智能 URL 提取（支持多种括号格式）
-- 🚀 F6 快捷命令菜单（代理/更新）
-
-**架构**
-
-- 🔧 模块化配置（config/events/utils 分离）
-- 🌐 跨平台适配（Windows/macOS/Linux）
-- 🐧 WSL/SSH 域集成
-- ✨ 启动自动最大化窗口
-
-## 快速开始
-
-### 安装
-
-#### 1. 安装 WezTerm
-
-从 [GitHub Releases](https://github.com/wezterm/wezterm/releases) 下载安装包。
-
-#### 2. 安装字体
-
-本配置使用以下字体，缺失会导致 Nerd Font 图标乱码、中文渲染异常：
-
-| 字体 | 用途 | 安装方式 |
-|------|------|---------|
-| **Maple Mono NF CN** | 主字体，编程连字 + Nerd Font 图标 + 中文优化 | `scoop bucket add nerd-fonts && scoop install Maple-Mono-NF-CN` |
-| **鸿蒙黑体** | 备用中文字体 | [华为开发者官网](https://developer.huawei.com/consumer/cn/design/resource-V1/) 下载安装 |
-
-> Maple Mono 的 harfbuzz 特性（`cv01-cv99`、`ss01-ss05` 等）详见 `config/fonts.lua`，完整文档见 [Maple Font 仓库](https://github.com/subframe7536/maple-font)。
-
-#### 3. 部署配置
-
-```bash
-# Windows
-git clone <your-repo> %USERPROFILE%\.config\wezterm
-
-# Linux/macOS
-git clone <your-repo> ~/.config/wezterm
+```powershell
+winget install wez.wezterm
 ```
 
-### 首次配置
+或从 [WezTerm Releases](https://github.com/wezterm/wezterm/releases) 下载。
 
- **F3 启动器（Windows）**
+### 2. 克隆配置
 
-按 `F3` 可打开启动器，选择不同 Shell 或 WSL 域：
+```powershell
+# 备份旧配置（如有）
+Rename-Item $env:USERPROFILE\.config\wezterm wezterm.bak -ErrorAction SilentlyContinue
 
-- **PowerShell** - Windows 默认
-- **Git Bash** - 推荐用于包管理工具（npm/pip/opencode 等）
-- **Anaconda PowerShell** - 已激活 conda base 环境的 PowerShell，适合 Python 开发
-- **CMD** - 传统命令提示符
-- **WSL 域** - 在 `config/domains.lua` 中自行配置
-
-> 提示：某些工具（如 opencode）在 Git Bash 中更新更稳定。Anaconda PowerShell 会自动激活 conda base 环境。`config/domains.lua` 需从 `domains.lua.example` 复制后自行填写，该文件不会被 git 追踪（见 `.gitignore`）。
-
- **修改 WSL 配置**（如果使用 WSL）
-
-从模板复制并编辑：
-
-```bash
-cp config/domains.lua.example config/domains.lua
-vim config/domains.lua
+# 克隆
+git clone https://github.com/Aresuae/wezterm-config.git $env:USERPROFILE\.config\wezterm
 ```
 
-```lua
-wsl_domains = {
-   {
-      name = 'WSL:Ubuntu-XX.XX',
-      distribution = 'Ubuntu-XX.XX',  -- 你的 WSL 发行版名称（wsl -l -v 查看）
-      username = 'your-username',
-      default_cwd = '/home/your-username',
-      default_prog = { 'bash', '-l' },
-   },
-},
-```
+### 3. 重载
 
-> `config/domains.lua` 被 `.gitignore` 排除，不会被 git 追踪，换机器需重新创建。
+打开 WezTerm，按 `Ctrl + Shift + R`，或重启终端。
 
-**添加 SSH 连接**（可选）
+## 常用操作
 
-在 `config/domains.lua` 中添加（如未创建先从 `domains.lua.example` 复制）：
+| 操作 | 方式 |
+|------|------|
+| 左右两列 | `Alt + \` 或 `Alt + Shift + 2` |
+| 上下两行 | `Alt + Ctrl + \` |
+| 三列 | `Alt + Shift + 3` |
+| 切换窗格 | `Alt + Ctrl + H/J/K/L` |
+| 窗格拆成独立窗口 | `Alt + Ctrl + D` |
+| 调整分屏宽度 | 拖动紫色分隔线，或 `Alt + Shift + 方向键` |
+| **右键菜单** | **在终端内右键** → 选择操作 |
 
-```lua
-ssh_domains = {
-   {
-      name = 'MyServer',
-      remote_address = '192.168.1.100',
-      username = 'root',
-   },
-},
-```
+### 右键菜单项
 
-**自定义背景**
+- 粘贴 / 复制选中
+- 左右分屏 / 上下分屏
+- 关闭当前窗格
+- 窗格 → 独立新窗口 / 新标签页
+- 随机壁纸
 
-将图片放入 `backdrops/` 目录（支持 jpg/png/gif），建议：
+> WezTerm **没有** Windows 那种图形化右键菜单，这里用「选择列表」模拟。鼠标**不能**把窗格拖成独立窗口，请用菜单或 `Alt + Ctrl + D`。
 
-- 数量：10-30 张
-- 单张大小：1-2MB
-- 总大小：20MB 以内
-
-## 配置结构
+## 目录结构
 
 ```
 wezterm/
-├── wezterm.lua          # 主入口（加载所有模块）
-├── config/              # 配置模块
-│   ├── init.lua            # Config 类（合并配置）
-│   ├── appearance.lua      # 外观（WebGPU/配色/背景/标签栏）
-│   ├── bindings.lua        # 快捷键（完全自定义）
-│   ├── domains.lua         # WSL/SSH/Unix 域
-│   ├── fonts.lua           # 字体（Maple Mono NF CN + 鸿蒙黑体）
-│   ├── general.lua         # 通用（滚动/超链接/行为）
-│   └── launch.lua          # 启动（默认 shell/启动菜单）
-├── events/              # 事件处理
-│   ├── left-status.lua     # 左状态栏（Leader/KeyTable 指示）
-│   ├── right-status.lua    # 右状态栏（时间/电池）
-│   ├── tab-title.lua       # 标签页标题
-│   └── new-tab-button.lua  # 新标签按钮
-├── utils/               # 工具函数
-│   ├── backdrops.lua       # 背景管理（切换/随机）
-│   ├── platform.lua        # 平台检测
-│   ├── gpu_adapter.lua     # GPU 适配器选择
-│   └── math.lua            # 数学工具
-├── colors/
-│   └── custom.lua          # Catppuccin Mocha 配色
-├── backdrops/           # 背景图片目录
-├── KEYBINDINGS.md       # 快捷键文档
-├── README.md            # 项目说明
-├── LICENSE              # 许可证
-└── .gitignore           # Git 忽略规则
+├── wezterm.lua           # 主入口
+├── config/
+│   ├── appearance.lua    # 外观、背景
+│   ├── panes.lua         # 分屏焦点高亮
+│   ├── bindings.lua      # 快捷键 + 右键菜单
+│   ├── fonts.lua         # 字体
+│   ├── launch.lua        # 启动 Shell 菜单
+│   └── domains.lua       # WSL/SSH（需自行创建，见 example）
+├── events/               # 状态栏、标签标题
+├── colors/custom.lua     # 配色
+├── backdrops/            # 壁纸图片
+└── KEYBINDINGS.md        # 完整快捷键文档
 ```
 
-## 快捷键
+## 可选配置
 
-> 完整快捷键说明：[KEYBINDINGS.md](./KEYBINDINGS.md)
+### WSL / SSH
 
-### 核心快捷键
-
-| 类别       | 快捷键             | 功能                  |
-| ---------- | ------------------ | --------------------- |
-| **功能键** | `F2`               | 命令面板              |
-|            | `F3`               | 启动器（WSL/SSH）     |
-|            | `F6`               | 快捷命令（代理/更新） |
-| **标签页** | `Alt+Enter`        | 新建标签页            |
-|            | `Alt+W`            | 关闭标签页            |
-|            | `Alt+H/L`          | 切换标签页            |
-| **窗格**   | `Alt+\`            | 垂直分割              |
-|            | `Alt+Ctrl+\`       | 水平分割              |
-|            | `Alt+Ctrl+X`       | 关闭当前窗格          |
-|            | `Alt+Z`            | 最大化/还原窗格       |
-|            | `Alt+Ctrl+H/J/K/L` | Vim 风格导航          |
-| **背景**   | `Alt+/`            | 随机切换              |
-|            | `Alt+,` / `Alt+.`  | 上一张/下一张         |
-| **其他**   | `Alt+U`            | 智能提取 URL          |
-|            | `Alt+F`            | 搜索                  |
-
-### Leader 键模式
-
-按 `Alt+Ctrl+Space` 激活 Leader 模式：
-
-- `Leader + F` → 字体调整模式（K/J 放大缩小，R 重置）
-- `Leader + P` → 窗格调整模式（H/J/K/L 调整大小）
-
-### F6 快捷命令
-
-- **Set Proxy (Windows)** - PowerShell 临时代理设置
-   > `$env:http_proxy="http://127.0.0.1:2080"; $env:https_proxy="http://127.0.0.1:2080"`
-- **Set Proxy (Linux)** - Bash/Zsh 临时代理设置
-   > `export HTTP_PROXY=http://127.0.0.1:2080; export HTTPS_PROXY=http://127.0.0.1:2080`
-- **Agent Update** - 更新 AI CLI 工具
-   > `claude update; npm upgrade -g opencode-ai; npm upgrade -g @openai/codex; npm upgrade -g @google/gemini-cli`
-
-## 使用技巧
-
-### 域（Domains）使用
-
- **访问 WSL**
-
-- 按 `F3` → 选择你配置的 WSL 域（如 `WSL:Ubuntu-24.04`）
-- 或在启动菜单中选择
-
-**连接 SSH**
-
-- 配置 `config/domains.lua` 后
-- 按 `F3` → 选择你的 SSH 服务器
-- 自动保持连接，像本地标签页一样使用
-
- **自动启动到 WSL**
-
-在 `config/domains.lua` 中取消注释并修改为你的 WSL 域：
-
-```lua
-default_gui_startup_args = { 'connect', 'WSL:Ubuntu-XX.XX' },
+```powershell
+Copy-Item config\domains.lua.example config\domains.lua
+# 编辑 domains.lua 填入你的 WSL 发行版或 SSH 地址
 ```
 
-### 背景管理
+### 换字体
 
-- `Alt+/` - 随机切换（适合每天换心情）
-- `Alt+Ctrl+/` - 打开选择器（模糊搜索）
-- `Alt+,` / `Alt+.` - 顺序切换
+编辑 `config/fonts.lua`，用 `wezterm ls-fonts --list-system` 查看本机可用字体。
 
-### Python 开发工作流
+## 快捷键文档
 
-**使用 Anaconda PowerShell**：
-
-- 按 `F3` → 选择 "Anaconda PowerShell"
-- 自动激活 conda base 环境，无需手动执行 `conda activate`
-- 支持 conda 包管理和虚拟环境操作
-
-**快速环境切换**：
-
-1. 新建标签页 → 按 `F3` → 选择 "Anaconda PowerShell"
-2. 使用 conda 命令创建/切换环境：`conda create -n myenv python=3.11`
-3. 激活环境：`conda activate myenv`
-
-**多环境并行**：
-
-- 每个标签页可以运行不同的 conda 环境
-- 使用 `Alt+\` 垂直分割，左侧运行开发服务器，右侧运行测试
-
-### 多任务工作流
-
-**场景 1：开发 + 监控**
-
-1. `Alt+\` 垂直分割
-2. 上方运行开发服务器
-3. 下方查看日志
-
-**场景 2：多项目切换**
-
-1. 每个项目一个标签页
-2. `F4` 模糊搜索快速跳转
-3. `Alt+H/L` 顺序切换
-
-## 自定义配置
-
-### 修改字体
-
-编辑 `config/fonts.lua`：
-
-```lua
-font = wezterm.font_with_fallback({
-   'Your Font',
-   'Fallback Font',
-}),
-font_size = 12,
-```
-
-**配置 Maple Mono 字体特性**
-
-Maple Mono 提供丰富的字符变体和连字选项，通过 `harfbuzz_features` 控制：
-
-```lua
-harfbuzz_features = {
-   -- 字符变体 (cv01-cv11, cv61-cv66)：美化单个字符渲染
-   'cv01',   -- 移除间隙
-   'cv02',   -- 替换 a
-   'cv03',   -- 替换 i
-   'cv05',   -- 替换 g
-   'cv64',   -- 替换左右箭头
-
-   -- 斜体变体 (cv31-cv44)：美化斜体字符渲染
-   'cv31',   -- 替换斜体 a
-   'cv38',   -- 替换斜体 g
-
-   -- 中文全角标点 (cv96-cv99)
-   'cv96',   -- 全角引号
-   'cv97',   -- 全角省略号
-   'cv98',   -- 全角破折号
-   'cv99',   -- 繁体标点
-
-   -- 样式集 (ss01-ss11)：预定义的美化风格组合
-   'ss01',   -- 分离的等号连字
-   'ss02',   -- 分离的比较符号连字
-   'ss03',   -- 任意的纯文本标签
-   'ss04',   -- 分离的多下划线连字
-   'ss05',   -- 回退细的转义符号
-
-   -- 其他
-   'zero',   -- 点 0（slashed zero）
-},
-```
-
-> 更多 Maple 特性参见 [Maple Font 文档](https://github.com/subframe7536/maple-font/blob/main/source/features.md)。
-
-### 修改配色
-
-编辑 `colors/custom.lua` 或使用内置主题：
-
-```lua
--- config/appearance.lua
-color_scheme = 'Catppuccin Mocha',  -- 或其他主题
-```
-
-### 修改快捷键
-
-编辑 `config/bindings.lua`，注意跨平台适配：
-
-- Windows/Linux: `mod.SUPER` = `ALT`
-- macOS: `mod.SUPER` = `SUPER` (Cmd)
-
-### 修改 Shell 配置
-
-编辑 `config/launch.lua` 调整启动菜单：
-
-```lua
--- Windows 平台配置示例
-if platform.is_win then
-   options.launch_menu = {
-      { label = 'PowerShell', args = { 'powershell' } },
-      { label = 'Git Bash', args = { 'C:\\Program Files\\Git\\bin\\bash.exe', '-l' } },
-      { label = 'CMD', args = { 'cmd' } },
-      { label = 'Anaconda PowerShell', args = { 'powershell', '-ExecutionPolicy', 'ByPass', '-NoExit', '-Command', "& 'C:\\ProgramData\\miniconda3\\shell\\condabin\\conda-hook.ps1' ; conda activate 'C:\\ProgramData\\miniconda3'" } },
-   }
-end
-```
-
-> 提示：如果 Anaconda/Miniconda 安装在其他路径，修改 `C:\\ProgramData\\miniconda3` 为你的实际安装路径。
+完整列表见 [KEYBINDINGS.md](./KEYBINDINGS.md)。
 
 ## 致谢
 
-参考项目：
-
+- [WezTerm](https://wezterm.org/)
+- 配置基底：[little3tar/wezterm](https://github.com/little3tar/wezterm)
 - [KevinSilvester/wezterm-config](https://github.com/KevinSilvester/wezterm-config)
-- [vivy89/wezterm-config](https://github.com/vivy89/wezterm-config)
 
 ## 许可证
 

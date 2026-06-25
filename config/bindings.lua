@@ -138,28 +138,75 @@ local keys = {
    },
 
    -- panes --
-   -- panes: split panes
+   -- 左右分屏（竖线分开，新窗格在右侧）
    {
       key = [[\]],
       mods = mod.SUPER,
-      action = act.SplitVertical({ domain = 'CurrentPaneDomain' }),
+      action = act.SplitPane({
+         direction = 'Right',
+         size = { Percent = 50 },
+      }),
    },
+   -- 上下分屏（横线分开，新窗格在下方）
    {
       key = [[\]],
       mods = mod.SUPER_REV,
-      action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }),
+      action = act.SplitPane({
+         direction = 'Down',
+         size = { Percent = 50 },
+      }),
+   },
+   -- 一键左右两列
+   {
+      key = '2',
+      mods = mod.SUPER .. '|SHIFT',
+      action = act.SplitPane({
+         direction = 'Right',
+         size = { Percent = 50 },
+      }),
+   },
+   -- 一键三等分竖屏（对应你图里三列布局）
+   {
+      key = '3',
+      mods = mod.SUPER .. '|SHIFT',
+      action = wezterm.action_callback(function(window, pane)
+         local tab = window:mux_window():active_tab()
+         pane:split({ direction = 'Right', size = { Percent = 66 } })
+         tab:active_pane():split({ direction = 'Right', size = { Percent = 50 } })
+      end),
    },
 
     -- panes: close pane
     { key = 'x', mods = mod.SUPER_REV, action = act.CloseCurrentPane({ confirm = true }) },
     -- panes: zoom pane
     { key = 'z', mods = mod.SUPER, action = act.TogglePaneZoomState },
+   -- 当前窗格拖成独立新窗口（WezTerm 不支持鼠标拖拽，用快捷键代替）
+   {
+      key = 'd',
+      mods = mod.SUPER_REV,
+      action = wezterm.action_callback(function(_window, pane)
+         pane:move_to_new_window()
+      end),
+   },
+   -- 当前窗格移到新标签页
+   {
+      key = 'd',
+      mods = mod.SUPER .. '|SHIFT',
+      action = wezterm.action_callback(function(_window, pane)
+         pane:move_to_new_tab()
+      end),
+   },
 
    -- panes: navigation
    { key = 'k',     mods = mod.SUPER_REV, action = act.ActivatePaneDirection('Up') },
    { key = 'j',     mods = mod.SUPER_REV, action = act.ActivatePaneDirection('Down') },
    { key = 'h',     mods = mod.SUPER_REV, action = act.ActivatePaneDirection('Left') },
    { key = 'l',     mods = mod.SUPER_REV, action = act.ActivatePaneDirection('Right') },
+   -- 方向键调整分屏大小（类似拖拽，步进 5 格）
+   { key = 'LeftArrow',  mods = mod.SUPER .. '|SHIFT', action = act.AdjustPaneSize({ 'Left', 5 }) },
+   { key = 'RightArrow', mods = mod.SUPER .. '|SHIFT', action = act.AdjustPaneSize({ 'Right', 5 }) },
+   { key = 'UpArrow',    mods = mod.SUPER .. '|SHIFT', action = act.AdjustPaneSize({ 'Up', 5 }) },
+   { key = 'DownArrow',  mods = mod.SUPER .. '|SHIFT', action = act.AdjustPaneSize({ 'Down', 5 }) },
    {
       key = 'p',
       mods = mod.SUPER_REV,
@@ -218,17 +265,60 @@ local key_tables = {
 }
 
 local mouse_bindings = {
+   -- 右键弹出操作菜单（WezTerm 无系统级右键菜单，用选择器模拟）
+   {
+      event = { Down = { streak = 1, button = 'Right' } },
+      mods = 'NONE',
+      action = wezterm.action_callback(function(window, pane)
+         local has_selection = window:get_selection_text_for_pane(pane) ~= ''
+         local choices = {
+            { label = '左右分屏', id = 'split_right' },
+            { label = '上下分屏', id = 'split_down' },
+            { label = '关闭当前窗格', id = 'close_pane' },
+            { label = '窗格 → 独立新窗口', id = 'new_window' },
+            { label = '窗格 → 新标签页', id = 'new_tab' },
+            { label = '随机壁纸', id = 'backdrop' },
+         }
+         if has_selection then
+            table.insert(choices, 1, { label = '复制选中', id = 'copy' })
+         else
+            table.insert(choices, 1, { label = '粘贴', id = 'paste' })
+         end
+
+         window:perform_action(
+            act.InputSelector({
+               title = '窗格操作',
+               choices = choices,
+               action = wezterm.action_callback(function(win, p, id)
+                  if id == 'paste' then
+                     win:perform_action(act.PasteFrom('Clipboard'), p)
+                  elseif id == 'copy' then
+                     win:perform_action(act.CopyTo('Clipboard'), p)
+                     win:perform_action(act.ClearSelection, p)
+                  elseif id == 'split_right' then
+                     p:split({ direction = 'Right', size = { Percent = 50 } })
+                  elseif id == 'split_down' then
+                     p:split({ direction = 'Down', size = { Percent = 50 } })
+                  elseif id == 'close_pane' then
+                     win:perform_action(act.CloseCurrentPane({ confirm = true }), p)
+                  elseif id == 'new_window' then
+                     p:move_to_new_window()
+                  elseif id == 'new_tab' then
+                     p:move_to_new_tab()
+                  elseif id == 'backdrop' then
+                     backdrops:random(win)
+                  end
+               end),
+            }),
+            pane
+         )
+      end),
+   },
    -- Ctrl-click will open the link under the mouse cursor
    {
       event = { Up = { streak = 1, button = 'Left' } },
       mods = 'CTRL',
       action = act.OpenLinkAtMouseCursor,
-   },
-   -- Right-click to copy selection
-   {
-      event = { Up = { streak = 1, button = 'Right' } },
-      mods = 'NONE',
-      action = act.CopyTo('Clipboard'),
    },
 }
 

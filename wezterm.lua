@@ -21,6 +21,7 @@ end)
 
 return Config:init()
    :append(require('config.appearance'))
+   :append(require('config.panes'))
    :append(require('config.bindings'))
    :append(require('config.domains'))
    :append(require('config.fonts'))

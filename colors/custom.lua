@@ -86,7 +86,8 @@ local colorscheme = {
       [17] = mocha.rosewater,
    },
    scrollbar_thumb = mocha.surface2,
-   split = mocha.overlay0,
+   -- 分屏分隔线：比背景更亮，方便鼠标拖拽调整宽度
+   split = mocha.mauve,
    compose_cursor = mocha.flamingo, -- nightbuild only
 }
 
